@@ -1,0 +1,46 @@
+问题：
+xfce4配置右键
+===============================================================
+时间：
+
+===============================================================
+错误提示：
+
+===============================================================
+原因：
+
+===============================================================
+解决方法：
+cd /home/user/.config/Thunar/uca.xml
+例：
+<?xml encoding="UTF-8" version="1.0"?>
+<actions>
+<action>
+        <icon>Terminal</icon>
+        <name>Open Terminal</name>
+        <unique-id>1493353069365139-1</unique-id>
+        <command>exo-open --working-directory %f --launch TerminalEmulator</command>
+        <description>自定义操作的示例</description>
+        <patterns>*</patterns>
+        <directories/>
+</action>
+<action>
+        <icon>filefind</icon>
+        <name>Finds in the current folder</name>
+        <unique-id>1493353069365212-2</unique-id>
+        <command>catfish --path=%f</command>
+        <description>搜索当前文件夹下的文件</description>
+        <patterns>*</patterns>
+        <directories/>
+</action>
+</actions>
+
+===============================================================
+注释：
+
+===============================================================
+方法取得路径：
+
+===============================================================
+其他：
+
