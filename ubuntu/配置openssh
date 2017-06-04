@@ -28,7 +28,7 @@ $ifconfig eth0 192.168.*.* netmask 255.255.255.0
 1.外网访问时如果机器在局域网内则要使用局域网的虚拟服务器功能（或使用花生壳等软件：http://hsk.oray.com/news/2781.html）
 2.机器直接连接外网时，可使用虚拟机的端口映射功能
 （在vmware palystation下）
-$sudo gedit /etc/vmware/vmnet8/nat/net.conf打开配置文件
+$sudo gedit /etc/vmware/vmnet8/nat/nat.conf打开配置文件
 在[incomingtcp]下的位置加上你要映射的端口 如：9999（主机映射端口）=192.168.43.103（虚拟机ip）：22（ssh默认端口）
 ===============================================================
 方法取得路径：
