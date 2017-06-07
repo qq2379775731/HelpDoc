@@ -75,9 +75,58 @@ int main() {
 
 ===============================================================================
 其他：
-变参函数不能直接读取参数数据，因为很难知道参数入栈顺序，会造成指针指向未知地址
+可变参数定义
+typedef struct {
+	unsigned int gp_offset;
+	unsigned int fp_offset;
+	char* overflow_arg_area;
+	char* reg_save_area;
+}va_list;
+----------------------------------
+#include <stdio.h>
+#include <stdarg.h>
+void test(int a, ...) {
+	char* p;
+	int i = 0;
+	printf("%d %p\n", a, (char*)&a);
+ 	p = ((char*)&a);
+	for (i = 0; i <= a; i++) {
+		printf("%d , %p\n", *(int*) p, p);
+		p = p - sizeof(long long);
+	}
+}
+//可变参数的第一个值的位置为（(char*)最先入栈的变量地址+最先入栈的变量大小+n(固定参数个数)x8)
+//前6个参数存在寄存器中，当参数地址大于48时，之后的参数都存在栈中
+void var_args_func(int a,int b,int c,const char* fmt, ...) {
+	va_list ap;
+//	printf("%p %p %p %p\n",&a,&b,&c,&fmt);
+//	printf("%d\n", *(int*)(((char*)&a)+sizeof(int)+40));
+//	printf("%p\n", ap->reg_save_area+32);
+//	printf("%d\n", *(int*)(ap->reg_save_area+32));
+	va_start(ap, fmt);
+	printf("%lu\n", sizeof(ap));
+	printf("%p %p %p %p %p %p\n",&a,&b,&c,&fmt,ap,ap->reg_save_area);
+	printf("%p\n", ap->overflow_arg_area);
+	printf("%d\n", va_arg(ap, int));
+	printf("%d\n", va_arg(ap, int));
+	printf("%d\n", va_arg(ap, int));
+	va_end(ap);
+}
+
+int main() {
+//	int a = 10;
+//	int* adr = &a;
+//	printf("%d %p %d %p %p\n", a, &a, *adr, adr, &adr);
+//	test(3,1,2,3);
+
+	
+	var_args_func(3,2,1,"%d %d %d\n", 4, 5, 6);
+	return 0;	
+}
+
+因为参数是从左往右入栈，所以变参函数参数读取的地址也是从大到小
 要用<stdarg.h>中的va_list va_start(va_list,fmt or number) va_arg(va_list,type) va_end(va_list)来读取
 ===============================================================================
 获取路径：
-
+http://m.blog.csdn.net/article/details?id=6538585
 ===============================================================================

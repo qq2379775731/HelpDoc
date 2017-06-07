@@ -1,0 +1,48 @@
+标题：
+va_list可变参数的实现
+===============================================================================
+时间：
+2017-6-7
+===============================================================================
+正文：
+参数是从右到左压入栈中的，知道第一个参数后就可以知道后面的参数
+x86的va_list就是一个char*数组，可以直接读取
+但在x64中va_list 不再是一个简单的char*了，gcc在x64位下的va_list大概是这样的:
+typedef struct {
+   unsigned int gp_offset;
+   unsigned int fp_offset;
+   char *overflow_arg_area;
+   char *reg_save_area;
+} va_list[1];
+进入函数的时候，会把6个通用寄存器和8个浮点寄存器连续的拷贝到这个函数的栈帧里。其中一个整数8个字节，一个浮点数16个字节。然后把第一个整数的地址放到reg_save_area里，overflow_arg_area里面是栈上的参数的起始地址。gp_offset设为0，表示整数参数相对reg_save_area的偏移地址，fp_offset设为48，也就是第一个浮点参数的位置。
+于是，取参数的时候，整形或者指针类型的，如果gp_offset 不到48 就从reg_save_area + gp_offset 的位置取值，并且把gp_offset加8，否则就从overflow_arg_area取值并且把overflow_arg_area加8
+如果是取浮点参数，如果fp_offset　不到　128+48，　就会从reg_save_area + fp_offset的位置取值，并且把fp_offset加16，否则就是从 overflow_arg_area取值并且把overflow_arg_area加16.
+下面的代码是是一个示意，说明了va_arg的处理过程
+#define va_arg(ap, type)                                        /
+    (*(type*)(__builtin_types_compatible_p(type, long double)   /
+              ? (ap->overflow_arg_area += 16,                   /
+                 ap->overflow_arg_area - 16)                    /
+              : __builtin_types_compatible_p(type, double)      /
+              ? (ap->fp_offset < 128 + 48                       /
+                 ? (ap->fp_offset += 16,                        /
+                    ap->reg_save_area + ap->fp_offset - 16)     /
+                 : (ap->overflow_arg_area += 8,                 /
+                    ap->overflow_arg_area - 8))                 /
+              : (ap->gp_offset < 48                             /
+                 ? (ap->gp_offset += 8,                         /
+                    ap->reg_save_area + ap->gp_offset - 8)      /
+                 : (ap->overflow_arg_area += 8,                 /
+                    ap->overflow_arg_area - 8))                 /
+        ))
+===============================================================================
+注释：
+固定参数虽然不再变参之列，但固参也会占用寄存器，固变参地址是从开始地址+8×固参个数的位子开始算起的
+（变参开始地址为距最后一个变量8个字节以上的段头部开始，如果段中的剩余空间不足8字节，则从下下段开始，栈地址为变参开始地址+192个字节（c×16个字节）处
+===============================================================================
+其他：
+见（变参)
+===============================================================================
+获取路径：
+http://m.blog.csdn.net/article/details?id=6538585
+http://blog.csdn.net/videosender/archive/2011/05/16/6425671.aspx
+===============================================================================
